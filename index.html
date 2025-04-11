@@ -1,0 +1,1300 @@
+<!-- Animation JavaScript pour la barre de transfert -->
+<script>
+    // Fonction pour l'animation de transfert
+    function runTransferAnimation() {
+        // Éléments DOM
+        const progressBar = document.getElementById('transfer-progress-bar');
+        const progressText = document.getElementById('progress-percentage');
+        const filesTransferred = document.getElementById('files-transferred');
+        const dataTransferred = document.getElementById('data-transferred');
+        const remainingTime = document.getElementById('remaining-time');
+        const currentFileName = document.getElementById('current-file-name');
+        
+        // Fichiers sensibles
+        const fileNames = [
+            "Passwords.txt", "Login.txt", "Identifiants.txt", "Admin.txt", 
+            "Root.txt", "Tokens.txt", "Keys.txt", "Users.txt", 
+            "Credentials.txt", "Access.txt", "Database.txt", "Config.txt"
+        ];
+        
+        // Valeurs de départ
+        let progress = 0;
+        
+        // Fonction de mise à jour
+        function updateProgress() {
+            // Incrémenter la progression
+            progress += 0.5 + Math.random() * 1.5;
+            if (progress > 100) progress = 100;
+            
+            // Mettre à jour l'interface
+            const roundedProgress = Math.floor(progress);
+            progressBar.style.width = roundedProgress + '%';
+            progressText.textContent = roundedProgress;
+            
+            // Mettre à jour les fichiers transférés
+            const fileNum = Math.floor(248 * (progress / 100));
+            filesTransferred.textContent = fileNum;
+            
+            // Mettre à jour les données transférées
+            const dataSize = (2.4 * (progress / 100)).toFixed(1);
+            dataTransferred.textContent = dataSize;
+            
+            // Mettre à jour le temps restant
+            const secondsLeft = Math.floor(45 * (1 - progress / 100));
+            const mins = Math.floor(secondsLeft / 60);
+            const secs = secondsLeft % 60;
+            remainingTime.textContent = String(mins).padStart(2, '0') + ':' + 
+                                       String(secs).padStart(2, '0');
+            
+            // Changer le fichier en cours
+            if (Math.random() > 0.7) {
+                const randomFile = fileNames[Math.floor(Math.random() * fileNames.length)];
+                currentFileName.textContent = randomFile;
+            }
+            
+            // Continuer ou recommencer
+            if (progress < 100) {
+                setTimeout(updateProgress, 100);
+            } else {
+                // Recommencer après 1 seconde
+                setTimeout(() => {
+                    progress = 0;
+                    progressBar.style.width = '0%';
+                    progressText.textContent = '0';
+                    filesTransferred.textContent = '0';
+                    dataTransferred.textContent = '0';
+                    updateProgress();
+                }, 1000);
+            }
+        }
+        
+        // Lancer l'animation
+        updateProgress();
+    }
+    
+    // Démarrer l'animation lorsque la page est chargée
+    document.addEventListener('DOMContentLoaded', function() {
+        // Exécuter après un court délai pour s'assurer que tout est chargé
+        setTimeout(runTransferAnimation, 1000);
+    });
+</script>            // Animation de transfert de fichiers
+        function startFileTransferAnimation() {
+            // Cette fonction est maintenant gérée par le script externe
+            // La barre de transfert démarre automatiquement
+        }        /* Overlay pour l'animation */
+    .folder-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+        display: none;
+        z-index: 90;
+    }
+
+    .folder-overlay.visible {
+        display: block;
+    }    <div class="folder-overlay" id="overlay"></div><!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Animation d'Explorateur de Fichiers</title>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+    
+    /* Styles pour mieux reproduire l'explorateur Windows 10/11 */
+    :root {
+        --win-accent: #0078d7;
+        --win-bg: #f9f9f9;
+        --win-border: #e0e0e0;
+    }
+
+    .file-explorer {
+        width: 900px;
+        height: 550px;
+        background-color: #fff;
+        border-radius: 3px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        transform: scale(0);
+        transition: transform 0.3s ease-out;
+        position: relative;
+        z-index: 100;
+    }
+
+    .file-explorer.open {
+        transform: scale(1);
+    }
+
+    .explorer-header {
+        background-color: #f2f2f2;
+        padding: 0 0 0 15px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+        height: 32px;
+    }
+
+    .explorer-title {
+        font-size: 14px;
+        color: #333;
+        margin-left: 8px;
+        font-weight: 500;
+    }
+
+    .explorer-actions {
+        display: flex;
+        margin-left: auto;
+    }
+
+    .action-button {
+        width: 45px;
+        height: 30px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        margin-left: 1px;
+    }
+
+    .action-button:hover {
+        background-color: #e6e6e6;
+    }
+
+    .minimize {
+        font-size: 12px;
+    }
+
+    .maximize {
+        font-size: 12px;
+    }
+
+    .close {
+        font-size: 12px;
+    }
+    
+    .close:hover {
+        background-color: #e81123;
+        color: white;
+    }
+
+    .explorer-toolbar {
+        background-color: #f9f9f9;
+        padding: 8px 15px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        align-items: center;
+    }
+    
+    .search-box {
+        margin-left: 10px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 6px 10px 6px 30px;
+        font-size: 13px;
+        width: 200px;
+        position: relative;
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+        font-size: 14px;
+    }
+
+    .navigation-buttons {
+        display: flex;
+        align-items: center;
+    }
+
+    .nav-button {
+        background-color: transparent;
+        border: none;
+        color: #666;
+        cursor: pointer;
+        font-size: 16px;
+        margin-right: 10px;
+        padding: 4px 8px;
+    }
+
+    .address-bar {
+        flex-grow: 1;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 6px 10px;
+        margin: 0 10px;
+        font-size: 13px;
+        color: #333;
+    }
+
+    .explorer-content {
+        display: flex;
+        flex-grow: 1;
+        overflow: hidden;
+    }
+
+    .sidebar {
+        width: 200px;
+        background-color: #f5f5f5;
+        border-right: 1px solid #e0e0e0;
+        padding: 0;
+        overflow-y: auto;
+    }
+
+    .sidebar-section {
+        margin-bottom: 5px;
+    }
+
+    .sidebar-header {
+        padding: 8px 15px;
+        font-size: 12px;
+        color: #666;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
+
+    .sidebar-divider {
+        height: 1px;
+        background-color: #e0e0e0;
+        margin: 8px 0;
+    }
+
+    .sidebar-item {
+        padding: 8px 15px;
+        display: flex;
+        align-items: center;
+        color: #333;
+        font-size: 13px;
+        cursor: pointer;
+    }
+
+    .sidebar-item:hover {
+        background-color: #e9e9e9;
+    }
+
+    .sidebar-item.active {
+        background-color: #e1ebf5;
+        color: #0078d7;
+    }
+
+    .sidebar-icon {
+        margin-right: 10px;
+        font-size: 16px;
+        width: 20px;
+        text-align: center;
+    }
+
+    .files-area {
+        flex-grow: 1;
+        padding: 15px;
+        overflow-y: auto;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        grid-gap: 10px;
+        background-color: #ffffff;
+    }
+
+    .file-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        padding: 5px;
+        border-radius: 4px;
+        transition: background-color 0.2s;
+    }
+
+    .file-item:hover {
+        background-color: #f0f5ff;
+    }
+
+    .file-icon {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 5px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .file-name {
+        font-size: 12px;
+        color: #333;
+        text-align: center;
+        word-break: break-word;
+    }
+
+    .folder {
+        color: #ffc107;
+    }
+
+    .document {
+        color: #2196f3;
+    }
+
+    .image {
+        color: #4caf50;
+    }
+
+    .status-bar {
+        background-color: #f5f5f5;
+        padding: 6px 15px;
+        border-top: 1px solid #e0e0e0;
+        font-size: 12px;
+        color: #666;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .items-count {
+        font-size: 12px;
+    }
+
+    /* Animation pour les fichiers qui apparaissent */
+    @keyframes fileAppear {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .file-item {
+        opacity: 0;
+        animation: fileAppear 0.3s forwards;
+    }
+
+    /* Délai pour chaque fichier */
+    .file-item:nth-child(1) { animation-delay: 0.1s; }
+    .file-item:nth-child(2) { animation-delay: 0.15s; }
+    .file-item:nth-child(3) { animation-delay: 0.2s; }
+    .file-item:nth-child(4) { animation-delay: 0.25s; }
+    .file-item:nth-child(5) { animation-delay: 0.3s; }
+    .file-item:nth-child(6) { animation-delay: 0.35s; }
+    .file-item:nth-child(7) { animation-delay: 0.4s; }
+    .file-item:nth-child(8) { animation-delay: 0.45s; }
+
+    /* Styles pour les fenêtres en cascade */
+    .cascade-window {
+        position: absolute;
+        transform: scale(0);
+    }
+    
+    .cascade-window.open {
+        transform: scale(1);
+    }
+
+    /* Styles pour la fenêtre de transfert de fichiers */
+    .file-transfer-container {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1000;
+    }
+    
+    .file-transfer-window {
+        width: 400px;
+        background-color: #f9f9f9;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+    }
+    
+    .transfer-header {
+        background-color: #f2f2f2;
+        padding: 8px 12px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .transfer-title {
+        font-size: 13px;
+        font-weight: 500;
+        color: #333;
+    }
+    
+    .transfer-close {
+        cursor: pointer;
+        color: #666;
+        font-size: 12px;
+    }
+    
+    .transfer-content {
+        padding: 12px;
+    }
+    
+    .transfer-file-info {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+    
+    .current-file {
+        display: flex;
+        align-items: center;
+        font-size: 13px;
+    }
+    
+    .current-file .file-icon {
+        margin-right: 6px;
+    }
+    
+    .transfer-details {
+        text-align: right;
+        font-size: 12px;
+        color: #666;
+    }
+    
+    .progress-container {
+        margin: 10px 0;
+        position: relative;
+    }
+    
+    .progress-bar {
+        height: 6px;
+        background-color: #0078d7;
+        width: 0%;
+        border-radius: 3px;
+    }
+    
+    .progress-text {
+        text-align: center;
+        font-size: 12px;
+        margin-top: 5px;
+        color: #333;
+    }
+    
+    .transfer-summary {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #666;
+        margin-top: 8px;
+    }
+    
+    /* Animation pour la barre de progression */
+    @keyframes transferFileBlink {
+        0% { color: #333; }
+        50% { color: #0078d7; }
+        100% { color: #333; }
+    }
+    
+    .animating-filename {
+        animation: transferFileBlink 1s infinite;
+        font-weight: 500;
+    }
+    
+    /* Bouton pour relancer l'animation */
+    .reset-button {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 10px 20px;
+        background-color: #0078d7;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        z-index: 200;
+    }
+    
+    .reset-button:hover {
+        background-color: #006cc1;
+    }
+</style>
+</head>
+<body>
+<div class="file-explorer" id="mainExplorer">
+    <div class="explorer-header">
+        <div class="explorer-title">Explorateur de fichiers</div>
+        <div class="explorer-actions">
+            <div class="action-button minimize">&#8212;</div>
+            <div class="action-button maximize">&#9744;</div>
+            <div class="action-button close" id="closeButton">&#10005;</div>
+        </div>
+    </div>
+    <div class="explorer-toolbar">
+        <div class="navigation-buttons">
+            <button class="nav-button">←</button>
+            <button class="nav-button">→</button>
+            <button class="nav-button">↑</button>
+        </div>
+        <div class="address-bar">Ce PC > Disque local (C:) > Utilisateurs > Utilisateur > Documents</div>
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            Rechercher dans Documents
+        </div>
+    </div>
+    <div class="explorer-content">
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-item active">
+                    <span class="sidebar-icon">🏠</span>
+                    <span>Accueil</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">🖼️</span>
+                    <span>Galerie</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-divider"></div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-header">Emplacements</div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">💻</span>
+                    <span>Bureau</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📥</span>
+                    <span>Téléchargements</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📄</span>
+                    <span>Documents</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">🖼️</span>
+                    <span>Images</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">🎵</span>
+                    <span>Musique</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">🎬</span>
+                    <span>Vidéos</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-divider"></div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-header">Périphériques et lecteurs</div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">💾</span>
+                    <span>Disque local (C:)</span>
+                </div>
+            </div>
+        </div>
+        <div class="files-area">
+            <div class="file-item folder-item" id="projectsFolder">
+                <div class="file-icon folder">📁</div>
+                <div class="file-name">Projets</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon folder">📁</div>
+                <div class="file-name">Archives</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon folder">📁</div>
+                <div class="file-name">Documents</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon document">📄</div>
+                <div class="file-name">Passwords.txt</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon document">📄</div>
+                <div class="file-name">Identifiants.txt</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon folder">📁</div>
+                <div class="file-name">Personnel</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon document">📄</div>
+                <div class="file-name">Email.txt</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon folder">📁</div>
+                <div class="file-name">Données</div>
+            </div>
+        </div>
+    </div>
+    <div class="status-bar">
+        <div class="items-count">8 éléments</div>
+        <div class="disk-space">Espace libre : 128 Go</div>
+    </div>
+</div>
+
+<!-- Nouvel explorateur qui s'ouvre lors du double-clic -->
+<div class="file-explorer new-window" id="newExplorer">
+    <div class="explorer-header">
+        <div class="explorer-title">Projets</div>
+        <div class="explorer-actions">
+            <div class="action-button minimize">&#8212;</div>
+            <div class="action-button maximize">&#9744;</div>
+            <div class="action-button close" id="closeNewWindow">&#10005;</div>
+        </div>
+    </div>
+    <div class="explorer-toolbar">
+        <div class="navigation-buttons">
+            <button class="nav-button">←</button>
+            <button class="nav-button">→</button>
+            <button class="nav-button">↑</button>
+        </div>
+        <div class="address-bar">Ce PC > Disque local (C:) > Utilisateurs > Utilisateur > Documents > Projets</div>
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            Rechercher dans Projets
+        </div>
+    </div>
+    <div class="explorer-content">
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📋</span>
+                    <span>Accès rapide</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📁</span>
+                    <span>Dossiers</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-divider"></div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-header">Documents récents</div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📄</span>
+                    <span>Passwords.txt</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📄</span>
+                    <span>Identifiants.txt</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📄</span>
+                    <span>Email.txt</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-divider"></div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-header">Dossiers importants</div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📁</span>
+                    <span>Archives</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📁</span>
+                    <span>Documents</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📁</span>
+                    <span>Projets</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📁</span>
+                    <span>Personnel</span>
+                </div>
+            </div>
+        </div>
+        <div class="files-area">
+            <div class="file-item">
+                <div class="file-icon folder">📁</div>
+                <div class="file-name">Web</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon folder">📁</div>
+                <div class="file-name">Application</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon document">📄</div>
+                <div class="file-name">Config.txt</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon document">📄</div>
+                <div class="file-name">Login.txt</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon document">📄</div>
+                <div class="file-name">Serveurs.txt</div>
+            </div>
+        </div>
+    </div>
+    <div class="status-bar">
+        <div class="items-count">5 éléments</div>
+        <div class="disk-space">Espace libre : 128 Go</div>
+    </div>
+</div>
+
+<!-- Animation de transfert de fichiers -->
+<div class="file-transfer-container">
+    <div class="file-transfer-window">
+        <div class="transfer-header">
+            <div class="transfer-title">Transfert de données en cours...</div>
+            <div class="transfer-close">✕</div>
+        </div>
+        <div class="transfer-content">
+            <div class="transfer-file-info">
+                <div class="current-file">
+                    <span class="file-icon">📄</span>
+                    <span id="current-file-name">Passwords.txt</span>
+                </div>
+                <div class="transfer-details">
+                    <div class="transfer-speed">12.8 MB/s</div>
+                    <div class="transfer-remaining"><span id="remaining-time">00:45</span> restant</div>
+                </div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar" id="transfer-progress-bar"></div>
+                <div class="progress-text"><span id="progress-percentage">0</span>% terminé</div>
+            </div>
+            <div class="transfer-summary">
+                <div>Fichiers: <span id="files-transferred">0</span>/<span id="total-files">248</span></div>
+                <div>Taille: <span id="data-transferred">0</span>/<span id="total-data">2.4</span> GB</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Plusieurs explorateurs qui s'ouvrent automatiquement -->
+<div class="file-explorer cascade-window" id="extraExplorer1" style="z-index: 80; top: 5%; left: 5%;">
+    <!-- Contenu identique à mainExplorer mais avec des positions différentes -->
+    <div class="explorer-header">
+        <div class="explorer-title">Documents - Sécurité</div>
+        <div class="explorer-actions">
+            <div class="action-button minimize">&#8212;</div>
+            <div class="action-button maximize">&#9744;</div>
+            <div class="action-button close">&#10005;</div>
+        </div>
+    </div>
+    <div class="explorer-toolbar">
+        <div class="navigation-buttons">
+            <button class="nav-button">←</button>
+            <button class="nav-button">→</button>
+            <button class="nav-button">↑</button>
+        </div>
+        <div class="address-bar">Ce PC > Disque local (C:) > Utilisateurs > Utilisateur > Sécurité</div>
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            Rechercher dans Sécurité
+        </div>
+    </div>
+    <div class="explorer-content">
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📋</span>
+                    <span>Accès rapide</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📁</span>
+                    <span>Dossiers</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-divider"></div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-header">Documents récents</div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📄</span>
+                    <span>Accès.txt</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📄</span>
+                    <span>Comptes.txt</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-divider"></div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-header">Dossiers importants</div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📁</span>
+                    <span>Sauvegardes</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📁</span>
+                    <span>Privé</span>
+                </div>
+            </div>
+        </div>
+        <div class="files-area">
+            <div class="file-item">
+                <div class="file-icon folder">📁</div>
+                <div class="file-name">Sauvegardes</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon folder">📁</div>
+                <div class="file-name">Privé</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon document">📄</div>
+                <div class="file-name">Accès.txt</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon document">📄</div>
+                <div class="file-name">Comptes.txt</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon document">📄</div>
+                <div class="file-name">Contacts.txt</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon document">📄</div>
+                <div class="file-name">Codes.txt</div>
+            </div>
+        </div>
+    </div>
+    <div class="status-bar">
+        <div class="items-count">6 éléments</div>
+        <div class="disk-space">Espace libre : 128 Go</div>
+    </div>
+</div>
+
+<div class="file-explorer cascade-window" id="extraExplorer2" style="z-index: 70; top: 10%; left: 10%;">
+    <div class="explorer-header">
+        <div class="explorer-title">Documents - Serveurs</div>
+        <div class="explorer-actions">
+            <div class="action-button minimize">&#8212;</div>
+            <div class="action-button maximize">&#9744;</div>
+            <div class="action-button close">&#10005;</div>
+        </div>
+    </div>
+    <div class="explorer-toolbar">
+        <div class="navigation-buttons">
+            <button class="nav-button">←</button>
+            <button class="nav-button">→</button>
+            <button class="nav-button">↑</button>
+        </div>
+        <div class="address-bar">Ce PC > Disque local (C:) > Utilisateurs > Utilisateur > Serveurs</div>
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            Rechercher dans Serveurs
+        </div>
+    </div>
+    <div class="explorer-content">
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📋</span>
+                    <span>Accès rapide</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📁</span>
+                    <span>Dossiers</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-divider"></div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-header">Documents récents</div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📄</span>
+                    <span>Admin.txt</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📄</span>
+                    <span>SSH.txt</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-divider"></div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-header">Dossiers importants</div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📁</span>
+                    <span>Config</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📁</span>
+                    <span>Backup</span>
+                </div>
+            </div>
+        </div>
+        <div class="files-area">
+            <div class="file-item">
+                <div class="file-icon folder">📁</div>
+                <div class="file-name">Config</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon folder">📁</div>
+                <div class="file-name">Backup</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon document">📄</div>
+                <div class="file-name">Admin.txt</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon document">📄</div>
+                <div class="file-name">SSH.txt</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon document">📄</div>
+                <div class="file-name">IP.txt</div>
+            </div>
+        </div>
+    </div>
+    <div class="status-bar">
+        <div class="items-count">5 éléments</div>
+        <div class="disk-space">Espace libre : 128 Go</div>
+    </div>
+</div>
+
+<div class="file-explorer cascade-window" id="extraExplorer3" style="z-index: 60; top: 15%; left: 15%;">
+    <div class="explorer-header">
+        <div class="explorer-title">Documents - Clients</div>
+        <div class="explorer-actions">
+            <div class="action-button minimize">&#8212;</div>
+            <div class="action-button maximize">&#9744;</div>
+            <div class="action-button close">&#10005;</div>
+        </div>
+    </div>
+    <div class="explorer-toolbar">
+        <div class="navigation-buttons">
+            <button class="nav-button">←</button>
+            <button class="nav-button">→</button>
+            <button class="nav-button">↑</button>
+        </div>
+        <div class="address-bar">Ce PC > Disque local (C:) > Utilisateurs > Utilisateur > Clients</div>
+        <div class="search-box">
+            <span class="search-icon">🔍</span>
+            Rechercher dans Clients
+        </div>
+    </div>
+    <div class="explorer-content">
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📋</span>
+                    <span>Accès rapide</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📁</span>
+                    <span>Dossiers</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-divider"></div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-header">Documents récents</div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📄</span>
+                    <span>Contacts.txt</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📄</span>
+                    <span>Coordonnées.txt</span>
+                </div>
+            </div>
+            
+            <div class="sidebar-divider"></div>
+            
+            <div class="sidebar-section">
+                <div class="sidebar-header">Dossiers importants</div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📁</span>
+                    <span>VIP</span>
+                </div>
+                <div class="sidebar-item">
+                    <span class="sidebar-icon">📁</span>
+                    <span>Nouveau</span>
+                </div>
+            </div>
+        </div>
+        <div class="files-area">
+            <div class="file-item">
+                <div class="file-icon folder">📁</div>
+                <div class="file-name">VIP</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon folder">📁</div>
+                <div class="file-name">Nouveau</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon document">📄</div>
+                <div class="file-name">Contacts.txt</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon document">📄</div>
+                <div class="file-name">Coordonnées.txt</div>
+            </div>
+            <div class="file-item">
+                <div class="file-icon document">📄</div>
+                <div class="file-name">Facturation.txt</div>
+            </div>
+        </div>
+    </div>
+    <div class="status-bar">
+        <div class="items-count">5 éléments</div>
+        <div class="disk-space">Espace libre : 128 Go</div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const mainExplorer = document.getElementById('mainExplorer');
+        const projectsFolder = document.getElementById('projectsFolder');
+        const newExplorer = document.getElementById('newExplorer');
+        const overlay = document.getElementById('overlay');
+        const closeButton = document.getElementById('closeButton');
+        const closeNewWindow = document.getElementById('closeNewWindow');
+        
+        const extraExplorer1 = document.getElementById('extraExplorer1');
+        const extraExplorer2 = document.getElementById('extraExplorer2');
+        const extraExplorer3 = document.getElementById('extraExplorer3');
+        
+        let windowCounter = 0;
+        
+        // Fonction pour créer dynamiquement une fenêtre d'explorateur
+        function createExtraExplorer() {
+            windowCounter++;
+            
+            const titles = [
+                "Documents - Confidentiels", "Utilisateurs - Admin", "Système - Config", 
+                "Réseau - Paramètres", "Backup - Données", "Finance - Privé",
+                "Clients - VIP", "Serveurs - Production", "Accès - Restreint",
+                "Comptes - Administrateur", "Mots de passe - Système", "Données - Sensibles"
+            ];
+            
+            const fileNames = [
+                "Passwords.txt", "Login.txt", "Identifiants.txt", "Admin.txt", "Root.txt",
+                "Tokens.txt", "Keys.txt", "Users.txt", "Credentials.txt", "Access.txt"
+            ];
+            
+            const folderNames = [
+                "Private", "Admin", "System", "Backup", "Restricted",
+                "Config", "Security", "VIP", "Internal", "Root"
+            ];
+            
+            // Générer des positions aléatoires mais qui restent visibles dans la fenêtre
+            const top = Math.floor(Math.random() * 30) + '%';
+            const left = Math.floor(Math.random() * 50) + '%';
+            const zIndex = 100 + windowCounter; // Augmenter le z-index pour chaque nouvelle fenêtre
+            
+            // Sélectionner des titres et noms de fichiers aléatoires
+            const randomTitle = titles[Math.floor(Math.random() * titles.length)];
+            
+            // Créer les fichiers et dossiers aléatoires pour cette fenêtre
+            let filesHTML = '';
+            const fileCount = Math.floor(Math.random() * 4) + 3; // Entre 3 et 6 fichiers
+            
+            for (let j = 0; j < fileCount; j++) {
+                // Alternat entre fichiers et dossiers
+                if (j % 2 === 0) {
+                    const fileName = fileNames[Math.floor(Math.random() * fileNames.length)];
+                    filesHTML += `
+                        <div class="file-item">
+                            <div class="file-icon document">📄</div>
+                            <div class="file-name">${fileName}</div>
+                        </div>
+                    `;
+                } else {
+                    const folderName = folderNames[Math.floor(Math.random() * folderNames.length)];
+                    filesHTML += `
+                        <div class="file-item">
+                            <div class="file-icon folder">📁</div>
+                            <div class="file-name">${folderName}</div>
+                        </div>
+                    `;
+                }
+            }
+            
+            // Création de la fenêtre d'explorateur avec un ID unique
+            const windowId = `dynamicExplorer${windowCounter}`;
+            const windowHTML = `
+                <div class="file-explorer cascade-window" id="${windowId}" style="z-index: ${zIndex}; top: ${top}; left: ${left};">
+                    <div class="explorer-header">
+                        <div class="explorer-title">${randomTitle}</div>
+                        <div class="explorer-actions">
+                            <div class="action-button minimize">&#8212;</div>
+                            <div class="action-button maximize">&#9744;</div>
+                            <div class="action-button close" data-window="${windowId}">&#10005;</div>
+                        </div>
+                    </div>
+                    <div class="explorer-toolbar">
+                        <div class="navigation-buttons">
+                            <button class="nav-button">←</button>
+                            <button class="nav-button">→</button>
+                            <button class="nav-button">↑</button>
+                        </div>
+                        <div class="address-bar">Ce PC > Disque local (C:) > ${randomTitle}</div>
+                        <div class="search-box">
+                            <span class="search-icon">🔍</span>
+                            Rechercher dans ${randomTitle.split(' - ')[1] || randomTitle}
+                        </div>
+                    </div>
+                    <div class="explorer-content">
+                        <div class="sidebar">
+                            <div class="sidebar-section">
+                                <div class="sidebar-item">
+                                    <span class="sidebar-icon">📋</span>
+                                    <span>Accès rapide</span>
+                                </div>
+                                <div class="sidebar-item">
+                                    <span class="sidebar-icon">📁</span>
+                                    <span>Dossiers</span>
+                                </div>
+                            </div>
+                            <div class="sidebar-divider"></div>
+                            <div class="sidebar-section">
+                                <div class="sidebar-header">Documents récents</div>
+                                <div class="sidebar-item">
+                                    <span class="sidebar-icon">📄</span>
+                                    <span>${fileNames[Math.floor(Math.random() * fileNames.length)]}</span>
+                                </div>
+                                <div class="sidebar-item">
+                                    <span class="sidebar-icon">📄</span>
+                                    <span>${fileNames[Math.floor(Math.random() * fileNames.length)]}</span>
+                                </div>
+                            </div>
+                            <div class="sidebar-divider"></div>
+                            <div class="sidebar-section">
+                                <div class="sidebar-header">Dossiers importants</div>
+                                <div class="sidebar-item">
+                                    <span class="sidebar-icon">📁</span>
+                                    <span>${folderNames[Math.floor(Math.random() * folderNames.length)]}</span>
+                                </div>
+                                <div class="sidebar-item">
+                                    <span class="sidebar-icon">📁</span>
+                                    <span>${folderNames[Math.floor(Math.random() * folderNames.length)]}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="files-area">
+                            ${filesHTML}
+                        </div>
+                    </div>
+                    <div class="status-bar">
+                        <div class="items-count">${fileCount} éléments</div>
+                        <div class="disk-space">Espace libre : 128 Go</div>
+                    </div>
+                </div>
+            `;
+            
+            // Ajouter la fenêtre au DOM
+            document.body.insertAdjacentHTML('beforeend', windowHTML);
+            
+            // Ajouter le gestionnaire d'événements pour le bouton de fermeture
+            document.querySelector(`#${windowId} .action-button.close`).addEventListener('click', function() {
+                const windowToClose = document.getElementById(windowId);
+                if (windowToClose) {
+                    windowToClose.classList.remove('open');
+                    // Supprimer complètement la fenêtre après l'animation de fermeture
+                    setTimeout(() => {
+                        windowToClose.remove();
+                    }, 300);
+                }
+            });
+            
+            // Animer l'ouverture de la fenêtre
+            setTimeout(() => {
+                const newWindow = document.getElementById(windowId);
+                if (newWindow) {
+                    newWindow.classList.add('open');
+                }
+            }, 10);
+            
+            // Supprimer automatiquement après un délai aléatoire (entre 2 et 5 secondes)
+            const removeDelay = Math.random() * 3000 + 2000;
+            setTimeout(() => {
+                const windowToRemove = document.getElementById(windowId);
+                if (windowToRemove) {
+                    windowToRemove.classList.remove('open');
+                    setTimeout(() => {
+                        windowToRemove.remove();
+                    }, 300);
+                }
+            }, removeDelay);
+            
+            return windowId;
+        }
+        
+        // Fonction pour générer des fenêtres en boucle
+        function startWindowLoop() {
+            // Créer une nouvelle fenêtre toutes les 100-300ms (beaucoup plus rapide)
+            const interval = Math.random() * 200 + 100;
+            setTimeout(() => {
+                createExtraExplorer();
+                startWindowLoop();
+            }, interval);
+        }
+        
+        // Initialiser l'animation avec quelques fenêtres de base
+        setTimeout(() => {
+            mainExplorer.classList.add('open');
+            
+            setTimeout(() => {
+                extraExplorer1.classList.add('open');
+                
+                setTimeout(() => {
+                    extraExplorer2.classList.add('open');
+                    
+                    setTimeout(() => {
+                        extraExplorer3.classList.add('open');
+                        
+                        // Commencer la génération en boucle
+                        startWindowLoop();
+                        
+                        // Démarrer l'animation de la barre de transfert
+                        startFileTransferAnimation();
+                        
+                    }, 400);
+                }, 400);
+            }, 400);
+        }, 500);
+        
+        // Ajouter des interactions avec les boutons de fermeture pour les fenêtres de base
+        const closeButtons = document.querySelectorAll('.action-button.close');
+        closeButtons.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const window = btn.closest('.file-explorer');
+                if (window) {
+                    window.classList.remove('open');
+                }
+            });
+        });
+        
+        // Ajouter des interactions basiques pour les éléments de l'interface
+        document.addEventListener('click', function(event) {
+            if (event.target.closest('.file-item')) {
+                const item = event.target.closest('.file-item');
+                const fileItems = item.parentElement.querySelectorAll('.file-item');
+                
+                // Désélectionner tous les autres éléments
+                fileItems.forEach(fi => fi.style.backgroundColor = '');
+                // Sélectionner cet élément
+                item.style.backgroundColor = '#e6f0ff';
+            }
+        });
+    });
+</script>
+</body>
+</html>
